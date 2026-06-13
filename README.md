@@ -1,6 +1,6 @@
-# Session Coach
+# FO4 Session Coach
 
-A Fallout 4 mod that writes a plain-text character snapshot after each play session.
+A Fallout 4 mod that writes a character snapshot after each play session.
 Paste the snapshot into Claude.ai for coaching feedback — no API key required.
 
 ## Requirements
@@ -34,7 +34,8 @@ Then paste the snapshot into Claude.ai using the prompt in `docs/coaching_prompt
 
 1. Copy `tools/paths.example.bat` to `tools/paths.local.bat`
 2. Fill in your `GAME` and `CK` paths
-3. Double-click `tools/compile.bat`
+3. From WSL: `make build` (or `make build run` to also launch the game)
+   From Windows: double-click `tools/compile.bat`
 
 ## Notes
 

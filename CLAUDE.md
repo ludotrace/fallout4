@@ -132,6 +132,12 @@ On Save:
 - `Location` is not a Form subtype in Papyrus — `loc as Form` is unsafe; location names currently skipped
 - `kSourceActor` in `LocationEnterExitParams` is unreliable when registered via global FunctionRef — do not compare against `Game.GetPlayer()`; filter on `kNewLocation == None` instead (None = exit event)
 
+## Papyrus reserved name gotchas
+- `state` is a reserved keyword (case-insensitive, same as `State`/`EndState`) — use `sState`
+- `action` is a reserved base script type — use `sAction`
+- `OnMenuOpenCloseEvent` conflicts with a vanilla ScriptObject event — our Hydra callback uses `OnMenuOpenCloseCB` instead
+- Helper functions that return a value must declare return type: `string Function Foo() Global` not `Function Foo() Global`
+
 ## What's proven working
 - Auto-trigger on load via Script Function Runner ✅
 - File writing via Hydra:IO:File.WriteAllLines ✅

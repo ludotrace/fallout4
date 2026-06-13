@@ -1,16 +1,27 @@
 Scriptname SessionCoach
 
 ; -----------------------------------------------------------------------
-; GameTime — in-game clock as "H:MM" string
+; ZeroPad — zero-pad a single-digit int to two digits
+; -----------------------------------------------------------------------
+string Function ZeroPad(int n) Global
+    if n < 10
+        return "0" + n
+    endif
+    return n as string
+EndFunction
+
+; -----------------------------------------------------------------------
+; GameDate — in-game date as "YYYY-MM-DD"
+; -----------------------------------------------------------------------
+string Function GameDate() Global
+    return Hydra:Time.GetGameYear() + "-" + ZeroPad(Hydra:Time.GetGameMonth()) + "-" + ZeroPad(Hydra:Time.GetGameDay())
+EndFunction
+
+; -----------------------------------------------------------------------
+; GameTime — in-game clock as "HH:MM"
 ; -----------------------------------------------------------------------
 string Function GameTime() Global
-    int h  = Hydra:Time.GetGameHour() as int
-    int m  = Hydra:Time.GetGameMinute() as int
-    string ms = m as string
-    if m < 10
-        ms = "0" + ms
-    endif
-    return h + ":" + ms
+    return ZeroPad(Hydra:Time.GetGameHour() as int) + ":" + ZeroPad(Hydra:Time.GetGameMinute() as int)
 EndFunction
 
 ; -----------------------------------------------------------------------
@@ -21,11 +32,11 @@ Function Log(string asLine) Global
 EndFunction
 
 ; -----------------------------------------------------------------------
-; WriteSnapshot — callable from console: cgf "SessionCoach.WriteSnapshot"
+; WriteSessionStart — captures baseline state on load.
+; Console: cgf "SessionCoach.WriteSessionStart"
 ; -----------------------------------------------------------------------
-Function WriteSnapshot() Global
+Function WriteSessionStart() Global
     Actor player = Game.GetPlayer()
-    int   lvl    = Game.GetPlayerLevel()
 
     int str  = player.GetValue(Game.GetStrengthAV())     as int
     int per  = player.GetValue(Game.GetPerceptionAV())   as int
@@ -35,30 +46,13 @@ Function WriteSnapshot() Global
     int agi  = player.GetValue(Game.GetAgilityAV())      as int
     int luc  = player.GetValue(Game.GetLuckAV())         as int
 
-    int year  = Hydra:Time.GetGameYear()
-    int month = Hydra:Time.GetGameMonth()
-    int day   = Hydra:Time.GetGameDay()
+    string special = "\"special\":{\"S\":" + str + ",\"P\":" + per + ",\"E\":" + endu + ",\"C\":" + cha + ",\"I\":" + inte + ",\"A\":" + agi + ",\"L\":" + luc + "}"
 
-    string playerName   = player.GetDisplayName()
-    string locationName = "(location not available)"
+    string[] lines = new string[1]
+    lines[0] = "{\"date\":\"" + GameDate() + "\",\"time\":\"" + GameTime() + "\",\"level\":" + Game.GetPlayerLevel() + ",\"name\":\"" + player.GetDisplayName() + "\"," + special + "}"
 
-    string header1  = "=== FO4 SESSION COACH - SNAPSHOT ==="
-    string header2  = "Generated: " + year + "-" + month + "-" + day
-    string header3  = "Character: " + playerName + " | Level: " + lvl + " | Location: " + locationName
-    string blank    = ""
-    string special1 = "=== S.P.E.C.I.A.L. ==="
-    string special2 = "S " + str + "  P " + per + "  E " + endu + "  C " + cha + "  I " + inte + "  A " + agi + "  L " + luc
-
-    string[] lines = new string[6]
-    lines[0] = header1
-    lines[1] = header2
-    lines[2] = header3
-    lines[3] = blank
-    lines[4] = special1
-    lines[5] = special2
-
-    Hydra:IO:File.WriteAllLines("SessionCoach_Snapshot.txt", lines)
-    Debug.Notification("[Session Coach] Snapshot written!")
+    Hydra:IO:File.WriteAllLines("SessionCoach_SessionStart.json", lines)
+    Debug.Notification("[Session Coach] Loaded")
 EndFunction
 
 ; -----------------------------------------------------------------------
@@ -76,11 +70,13 @@ Function OnPostLoadGameEvent(Hydra:Events:PostLoadGameParams akParams) Global
     Hydra:Events.RegisterForBookRead(Hydra:FunctionRefs.CreateGlobalRef("SessionCoach", "OnBookReadEvent"))
     Hydra:Events.RegisterForLockPick(Hydra:FunctionRefs.CreateGlobalRef("SessionCoach", "OnLockPickEvent"))
     Hydra:Events.RegisterForTerminalHack(Hydra:FunctionRefs.CreateGlobalRef("SessionCoach", "OnTerminalHackEvent"))
-    Hydra:Events.RegisterForItemEquipUnequip(Hydra:FunctionRefs.CreateGlobalRef("SessionCoach", "OnItemEquipUnequipEvent"))
+    ; equip: fires for NPCs too (enemy attacks, etc.) — not reliable for player gear
+    ; Hydra:Events.RegisterForItemEquipUnequip(Hydra:FunctionRefs.CreateGlobalRef("SessionCoach", "OnItemEquipUnequipEvent"))
     Hydra:Events.RegisterForItemAddRemove(Hydra:FunctionRefs.CreateGlobalRef("SessionCoach", "OnItemAddRemoveEvent"))
     Hydra:Events.RegisterForCombatStateChange(Hydra:FunctionRefs.CreateGlobalRef("SessionCoach", "OnCombatStateChangeEvent"))
     Hydra:Events.RegisterForPerkPointIncrease(Hydra:FunctionRefs.CreateGlobalRef("SessionCoach", "OnPerkPointIncreaseEvent"))
-    Hydra:Events.RegisterForPerkEntryRun(Hydra:FunctionRefs.CreateGlobalRef("SessionCoach", "OnPerkEntryRunEvent"))
+    ; perk_run: fires for passive perk effects every calculation — not perk selection, useless
+    ; Hydra:Events.RegisterForPerkEntryRun(Hydra:FunctionRefs.CreateGlobalRef("SessionCoach", "OnPerkEntryRunEvent"))
     Hydra:Events.RegisterForSleepStartStop(Hydra:FunctionRefs.CreateGlobalRef("SessionCoach", "OnSleepStartStopEvent"))
     Hydra:Events.RegisterForWaitStartStop(Hydra:FunctionRefs.CreateGlobalRef("SessionCoach", "OnWaitStartStopEvent"))
     Hydra:Events.RegisterForObjectSell(Hydra:FunctionRefs.CreateGlobalRef("SessionCoach", "OnObjectSellEvent"))
@@ -93,15 +89,15 @@ Function OnPostLoadGameEvent(Hydra:Events:PostLoadGameParams akParams) Global
     Hydra:Events.RegisterForFurnitureEnterExit(Hydra:FunctionRefs.CreateGlobalRef("SessionCoach", "OnFurnitureEnterExitEvent"))
     Hydra:Events.RegisterForObjectActivate(Hydra:FunctionRefs.CreateGlobalRef("SessionCoach", "OnObjectActivateEvent"))
     Hydra:Events.RegisterForSpellCast(Hydra:FunctionRefs.CreateGlobalRef("SessionCoach", "OnSpellCastEvent"))
-    Hydra:Events.RegisterForTriggerEnterLeave(Hydra:FunctionRefs.CreateGlobalRef("SessionCoach", "OnTriggerEnterLeaveEvent"))
+    ; trigger: invisible volumes, pure noise
+    ; Hydra:Events.RegisterForTriggerEnterLeave(Hydra:FunctionRefs.CreateGlobalRef("SessionCoach", "OnTriggerEnterLeaveEvent"))
     Hydra:Events.RegisterForObjectOpenClose(Hydra:FunctionRefs.CreateGlobalRef("SessionCoach", "OnObjectOpenCloseEvent"))
     Hydra:Events.RegisterForObjectGrabRelease(Hydra:FunctionRefs.CreateGlobalRef("SessionCoach", "OnObjectGrabReleaseEvent"))
     Hydra:Events.RegisterForDestructionStageChange(Hydra:FunctionRefs.CreateGlobalRef("SessionCoach", "OnDestructionStageChangeEvent"))
     Hydra:Events.RegisterForCellEnterExit(Hydra:FunctionRefs.CreateGlobalRef("SessionCoach", "OnCellEnterExitEvent"))
     Hydra:Events.RegisterForActiveEffectApplyRemove(Hydra:FunctionRefs.CreateGlobalRef("SessionCoach", "OnActiveEffectApplyRemoveEvent"))
 
-    Debug.Notification("[Session Coach] Loaded")
-    WriteSnapshot()
+    WriteSessionStart()
 EndFunction
 
 ; -----------------------------------------------------------------------

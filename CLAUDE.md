@@ -61,7 +61,7 @@ From Windows: double-click `tools/compile.bat`. It:
 4. Deploys `dist/Data/` into the game's `Data/` folder
 5. Removes the staged source file
 
-Console test: `cgf "SessionCoach.WriteSnapshot"` (close console first to see HUD notification)
+Console test: `cgf "SessionCoach.WriteSessionStart"` (close console first to see HUD notification)
 Quick quit: `qqq`
 
 ## Compiler notes
@@ -143,10 +143,22 @@ On Save:
 - File writing via Hydra:IO:File.WriteAllLines ✅
 - File appending via Hydra:IO:File.AppendLine ✅
 - `player.GetDisplayName()` for player name ✅
-- Hydra:Time for in-game date ✅
+- Hydra:Time for in-game date/time ✅
 - SPECIAL stats via GetValue ✅
 - Global event callbacks via `Hydra:Events.RegisterForLocationEnterExit` + `CreateGlobalRef` ✅
-- `SessionCoach_Events.jsonl` written on location change ✅
+- `SessionCoach_SessionStart.json` written on load with level + SPECIAL in JSON ✅
+- 31 event types streaming to `SessionCoach_Events.jsonl` ✅
+- `stat` events (MiscStatChange) capture Objects Built, Creatures Killed, Caps, etc. ✅
+
+## Event blacklist (too noisy, commented out)
+- `perk_run` (`PerkEntryRun`) — passive perk effects every calculation, 68K events/session
+- `trigger` (`TriggerEnterLeave`) — invisible volumes, pure noise
+- `equip` (`ItemEquipUnequip`) — fires for NPCs too, unreliable for player gear
+
+## ActorValueChange / SPECIAL tracking
+Do NOT register for `ActorValueChange` — fires constantly for health, AP, rad, etc.
+Instead: capture SPECIAL at load (`WriteSessionStart`) and at save (`OnPostSaveGame`), diff the two.
+This catches bobbleheads and any other SPECIAL change without streaming noise.
 
 ## Layer roadmap
 - **Layer 1** ✅ SPECIAL, level, player name, auto-trigger on load, repo scaffolded

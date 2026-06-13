@@ -8,7 +8,9 @@ setlocal
 :: Double-click from Windows Explorer or run from any directory.
 :: -----------------------------------------------------------------------
 
-set REPO=%~dp0..
+pushd "%~dp0.."
+set REPO=%CD%
+popd
 
 if not exist "%~dp0paths.local.bat" (
     echo.
@@ -27,19 +29,30 @@ set GAME_USER=%GAME%\Data\Scripts\Source\User
 set GAME_SRC=%GAME%\Data\Scripts\Source
 set OUT=%REPO%\dist\Data\Scripts
 
+:: The Papyrus compiler derives the script name from the compiled file's path
+:: relative to its import roots. The only reliable root for our script is the
+:: game's Source\User directory (already an import path). We stage the source
+:: there before compiling and remove it after.
+::
+:: stubs\ still takes priority over Source\User for Hydra\Events.psc, which
+:: is what lets our minimal stub shadow Hydra's original.
+copy /y "%REPO%\src\SessionCoach.psc" "%GAME_USER%\SessionCoach.psc" >nul
+
 echo.
 echo [Session Coach] Compiling src\SessionCoach.psc ...
 echo.
 
 :: Import path order:
-::   1. stubs\          — our Hydra:Events stub (shadows the real one)
-::   2. game Source\User — all other Hydra sources + any base game User scripts
-::   3. game Source\    — base game scripts (Actor, Game, Debug, etc.)
+::   1. stubs\           — our Hydra:Events stub (shadows the real one)
+::   2. game Source\User — staged SessionCoach.psc + remaining Hydra sources
+::   3. game Source\     — base game scripts (Actor, Game, Debug, etc.)
 
-"%COMPILER%" "%REPO%\src\SessionCoach.psc" ^
+"%COMPILER%" "%GAME_USER%\SessionCoach.psc" ^
     -f="%FLAGS%" ^
     -i="%STUBS%;%GAME_USER%;%GAME_SRC%" ^
     -o="%OUT%"
+
+del "%GAME_USER%\SessionCoach.psc" >nul
 
 if %ERRORLEVEL% NEQ 0 (
     echo.

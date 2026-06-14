@@ -1,7 +1,11 @@
 # FO4 Session Coach
 
-A Fallout 4 mod that writes a character snapshot after each play session.
-Paste the snapshot into Claude.ai for coaching feedback — no API key required.
+A Fallout 4 session logger. Records your character state, kills, quests, locations,
+inventory changes, and combat events to a structured log file each session — ready
+to paste into an AI coaching session, analyze yourself, or feed into other tools.
+
+Includes a ready-made prompt for [Claude.ai](https://claude.ai) that turns the log
+into a personalized coaching session. No API key required.
 
 ## Requirements
 

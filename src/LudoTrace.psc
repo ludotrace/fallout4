@@ -28,7 +28,7 @@ EndFunction
 ; Log — append one event line to the session log
 ; -----------------------------------------------------------------------
 Function Log(string asLine) Global
-    Hydra:IO:File.AppendLine("LudoTrace_Events.jsonl", asLine)
+    Hydra:IO:File.AppendLine("lt_fo4_events.jsonl", asLine)
 EndFunction
 
 ; -----------------------------------------------------------------------
@@ -76,44 +76,64 @@ string Function BuildAmmoJson() Global
     names[16] = "Cryo Cell"
     names[17] = "Gamma Round"
     names[18] = "Flamer Fuel"
-    int[] ids = new int[19]
-    ids[0]  = 0x0001f66b
-    ids[1]  = 0x0004ce87
-    ids[2]  = 0x0009221c
-    ids[3]  = 0x0001f66a
-    ids[4]  = 0x0001f279
-    ids[5]  = 0x0001f276
-    ids[6]  = 0x0001f278
-    ids[7]  = 0x0001f66c
-    ids[8]  = 0x0018abdf
-    ids[9]  = 0x000c1897
-    ids[10] = 0x00075fe4
-    ids[11] = 0x0001dbb7
-    ids[12] = 0x0001f673
-    ids[13] = 0x000e6b2e
-    ids[14] = 0x000caba3
-    ids[15] = 0x000fe269
-    ids[16] = 0x0018abe2
-    ids[17] = 0x000df279
-    ids[18] = 0x000cac78
-    string result = "{"
+    string[] formIds = new string[19]
+    formIds[0]  = "0x0001F66B"
+    formIds[1]  = "0x0004CE87"
+    formIds[2]  = "0x0009221C"
+    formIds[3]  = "0x0001F66A"
+    formIds[4]  = "0x0001F279"
+    formIds[5]  = "0x0001F276"
+    formIds[6]  = "0x0001F278"
+    formIds[7]  = "0x0001F66C"
+    formIds[8]  = "0x0018ABDF"
+    formIds[9]  = "0x000C1897"
+    formIds[10] = "0x00075FE4"
+    formIds[11] = "0x0001DBB7"
+    formIds[12] = "0x0001F673"
+    formIds[13] = "0x000E6B2E"
+    formIds[14] = "0x000CABA3"
+    formIds[15] = "0x000FE269"
+    formIds[16] = "0x0018ABE2"
+    formIds[17] = "0x000DF279"
+    formIds[18] = "0x000CAC78"
+    int[] intIds = new int[19]
+    intIds[0]  = 0x0001f66b
+    intIds[1]  = 0x0004ce87
+    intIds[2]  = 0x0009221c
+    intIds[3]  = 0x0001f66a
+    intIds[4]  = 0x0001f279
+    intIds[5]  = 0x0001f276
+    intIds[6]  = 0x0001f278
+    intIds[7]  = 0x0001f66c
+    intIds[8]  = 0x0018abdf
+    intIds[9]  = 0x000c1897
+    intIds[10] = 0x00075fe4
+    intIds[11] = 0x0001dbb7
+    intIds[12] = 0x0001f673
+    intIds[13] = 0x000e6b2e
+    intIds[14] = 0x000caba3
+    intIds[15] = 0x000fe269
+    intIds[16] = 0x0018abe2
+    intIds[17] = 0x000df279
+    intIds[18] = 0x000cac78
+    string result = "["
     bool first = true
     int i = 0
     while i < 19
-        Form f = Game.GetForm(ids[i])
+        Form f = Game.GetForm(intIds[i])
         if f != None
             int count = player.GetItemCount(f)
             if count > 0
                 if !first
                     result += ","
                 endif
-                result += "\"" + names[i] + "\":" + count
+                result += "{\"name\":\"" + names[i] + "\",\"form_id\":\"" + formIds[i] + "\",\"count\":" + count + "}"
                 first = false
             endif
         endif
         i += 1
     endwhile
-    return result + "}"
+    return result + "]"
 EndFunction
 
 string Function BuildAidJson() Global
@@ -132,38 +152,52 @@ string Function BuildAidJson() Global
     names[10] = "X-Cell"
     names[11] = "Stealth Boy"
     names[12] = "Addictol"
-    int[] ids = new int[13]
-    ids[0]  = 0x00023736
-    ids[1]  = 0x00023742
-    ids[2]  = 0x00024057
-    ids[3]  = 0x00033779
-    ids[4]  = 0x000366c5
-    ids[5]  = 0x0003377b
-    ids[6]  = 0x00033778
-    ids[7]  = 0x0003377d
-    ids[8]  = 0x00058aa7
-    ids[9]  = 0x00058aad
-    ids[10] = 0x001506f4
-    ids[11] = 0x0004f4a6
-    ids[12] = 0x000459c5
-    string result = "{"
+    string[] formIds = new string[13]
+    formIds[0]  = "0x00023736"
+    formIds[1]  = "0x00023742"
+    formIds[2]  = "0x00024057"
+    formIds[3]  = "0x00033779"
+    formIds[4]  = "0x000366C5"
+    formIds[5]  = "0x0003377B"
+    formIds[6]  = "0x00033778"
+    formIds[7]  = "0x0003377D"
+    formIds[8]  = "0x00058AA7"
+    formIds[9]  = "0x00058AAD"
+    formIds[10] = "0x001506F4"
+    formIds[11] = "0x0004F4A6"
+    formIds[12] = "0x000459C5"
+    int[] intIds = new int[13]
+    intIds[0]  = 0x00023736
+    intIds[1]  = 0x00023742
+    intIds[2]  = 0x00024057
+    intIds[3]  = 0x00033779
+    intIds[4]  = 0x000366c5
+    intIds[5]  = 0x0003377b
+    intIds[6]  = 0x00033778
+    intIds[7]  = 0x0003377d
+    intIds[8]  = 0x00058aa7
+    intIds[9]  = 0x00058aad
+    intIds[10] = 0x001506f4
+    intIds[11] = 0x0004f4a6
+    intIds[12] = 0x000459c5
+    string result = "["
     bool first = true
     int i = 0
     while i < 13
-        Form f = Game.GetForm(ids[i])
+        Form f = Game.GetForm(intIds[i])
         if f != None
             int count = player.GetItemCount(f)
             if count > 0
                 if !first
                     result += ","
                 endif
-                result += "\"" + names[i] + "\":" + count
+                result += "{\"name\":\"" + names[i] + "\",\"form_id\":\"" + formIds[i] + "\",\"count\":" + count + "}"
                 first = false
             endif
         endif
         i += 1
     endwhile
-    return result + "}"
+    return result + "]"
 EndFunction
 
 string Function BuildStateJson(string asType) Global
@@ -177,16 +211,10 @@ string Function BuildStateJson(string asType) Global
     int agi  = player.GetValue(Game.GetAgilityAV())      as int
     int luc  = player.GetValue(Game.GetLuckAV())         as int
 
-    float fT0 = Utility.GetCurrentRealTime()
     string special = "\"special\":{\"S\":" + str + ",\"P\":" + per + ",\"E\":" + endu + ",\"C\":" + cha + ",\"I\":" + inte + ",\"A\":" + agi + ",\"L\":" + luc + "}"
-    float fT1 = Utility.GetCurrentRealTime()
     string sBob = BuildBobbleheadsJson()
-    float fT2 = Utility.GetCurrentRealTime()
     string sAmmo = BuildAmmoJson()
-    float fT3 = Utility.GetCurrentRealTime()
     string sAid = BuildAidJson()
-    float fT4 = Utility.GetCurrentRealTime()
-    Hydra:IO:File.AppendLine("LudoTrace_Events.jsonl", "{\"type\":\"_timing\",\"phase\":\"" + asType + "\",\"special_ms\":" + ((fT1-fT0)*1000 as int) + ",\"bob_ms\":" + ((fT2-fT1)*1000 as int) + ",\"ammo_ms\":" + ((fT3-fT2)*1000 as int) + ",\"aid_ms\":" + ((fT4-fT3)*1000 as int) + "}")
     return "{\"type\":\"" + asType + "\",\"date\":\"" + GameDate() + "\",\"time\":\"" + GameTime() + "\",\"level\":" + Game.GetPlayerLevel() + ",\"name\":\"" + player.GetDisplayName() + "\"," + special + ",\"bobbleheads\":" + sBob + ",\"ammo\":" + sAmmo + ",\"aid\":" + sAid + "}"
 EndFunction
 
@@ -197,7 +225,7 @@ EndFunction
 Function WriteSessionStart() Global
     string[] lines = new string[1]
     lines[0] = BuildStateJson("session_start")
-    Hydra:IO:File.WriteAllLines("LudoTrace_Events.jsonl", lines)
+    Hydra:IO:File.WriteAllLines("lt_fo4_events.jsonl", lines)
     Debug.Notification("[LudoTrace] Loaded")
 EndFunction
 
@@ -206,6 +234,11 @@ EndFunction
 ; -----------------------------------------------------------------------
 Function OnPostSaveGameEvent(Hydra:Events:PostSaveGameParams akParams) Global
     Log(BuildStateJson("session_end"))
+    string sDate = GameDate()
+    string sTime = ZeroPad(Hydra:Time.GetGameHour() as int) + "-" + ZeroPad(Hydra:Time.GetGameMinute() as int)
+    string sFilename = "lt_fo4_" + sDate + "_" + sTime + ".jsonl"
+    string[] lines = Hydra:IO:File.ReadAllLines("lt_fo4_events.jsonl")
+    Hydra:IO:File.WriteAllLines(sFilename, lines)
     Debug.Notification("[LudoTrace] Session saved")
 EndFunction
 
@@ -255,7 +288,10 @@ Function OnPostLoadGameEvent(Hydra:Events:PostLoadGameParams akParams) Global
     Hydra:Events.RegisterForObjectSell(Hydra:FunctionRefs.CreateGlobalRef("LudoTrace", "OnObjectSellEvent"))
     Hydra:Events.RegisterForObjectHarvest(Hydra:FunctionRefs.CreateGlobalRef("LudoTrace", "OnObjectHarvestEvent"))
     Hydra:Events.RegisterForMenuModeEnterExit(Hydra:FunctionRefs.CreateGlobalRef("LudoTrace", "OnMenuModeEnterExitEvent"))
-    Hydra:Events.RegisterForMenuOpenClose(Hydra:FunctionRefs.CreateGlobalRef("LudoTrace", "OnMenuOpenCloseCB"))
+    ; MenuOpenClose fires for every engine UI element (FaderMenu, CursorMenu, VignetteMenu, etc.)
+    ; causing concurrent AppendLine calls that corrupt the JSONL. MenuModeEnterExit covers
+    ; the player-facing modes (Pipboy, Workshop, Barter) without the noise.
+    ; Hydra:Events.RegisterForMenuOpenClose(Hydra:FunctionRefs.CreateGlobalRef("LudoTrace", "OnMenuOpenCloseCB"))
     Hydra:Events.RegisterForDifficultyChange(Hydra:FunctionRefs.CreateGlobalRef("LudoTrace", "OnDifficultyChangeEvent"))
     ; life_state: actors loading into world in dead state — not session kills
     ; Hydra:Events.RegisterForLifeStateChange(Hydra:FunctionRefs.CreateGlobalRef("LudoTrace", "OnLifeStateChangeEvent"))
@@ -279,7 +315,7 @@ Function OnPostLoadGameEvent(Hydra:Events:PostLoadGameParams akParams) Global
 EndFunction
 
 ; -----------------------------------------------------------------------
-; Event callbacks — all append one JSON line to LudoTrace_Events.jsonl
+; Event callbacks — all append one JSON line to lt_fo4_events.jsonl
 ; -----------------------------------------------------------------------
 
 int Function BobbleheadFormId(string asName) Global
@@ -449,7 +485,7 @@ Function OnLocationLoadEvent(Hydra:Events:LocationLoadParams akParams) Global
 EndFunction
 
 Function OnLevelIncreaseEvent(Hydra:Events:LevelIncreaseParams akParams) Global
-    Log("{\"type\":\"level\",\"to\":" + akParams.iNewLevel + ",\"time\":\"" + GameTime() + "\"}")
+    Log("{\"type\":\"level\",\"to\":" + akParams.iNewLevel + ",\"perks\":" + BuildPerksJson() + ",\"time\":\"" + GameTime() + "\"}")
 EndFunction
 
 Function OnQuestStageChangeEvent(Hydra:Events:QuestStageChangeParams akParams) Global
@@ -607,13 +643,18 @@ Function OnMenuModeEnterExitEvent(Hydra:Events:MenuModeEnterExitParams akParams)
 EndFunction
 
 Function OnMenuOpenCloseCB(Hydra:Events:MenuOpenCloseParams akParams) Global
+    string menu = akParams.sMenuName
+    ; engine/system menus that fire during saves and transitions — no coaching value and race with save writes
+    if menu == "FaderMenu" || menu == "CursorMenu" || menu == "PauseMenu" || menu == "LoadingMenu" || menu == "HUDMenu"
+        return
+    endif
     string sState
     if akParams.bOpened
         sState = "opened"
     else
         sState = "closed"
     endif
-    Log("{\"type\":\"menu\",\"menu\":\"" + akParams.sMenuName + "\",\"state\":\"" + sState + "\",\"time\":\"" + GameTime() + "\"}")
+    Log("{\"type\":\"menu\",\"menu\":\"" + menu + "\",\"state\":\"" + sState + "\",\"time\":\"" + GameTime() + "\"}")
 EndFunction
 
 Function OnDifficultyChangeEvent(Hydra:Events:DifficultyChangeParams akParams) Global

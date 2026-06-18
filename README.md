@@ -80,10 +80,20 @@ in between.
 {"type":"session_start","date":"2288-02-27","time":"01:09","level":40,"name":"Rhea",
  "special":{"S":11,"P":7,"E":4,"C":7,"I":8,"A":6,"L":7},
  "bobbleheads":["Charisma","Intelligence"],
- "ammo":{".308 Round":1001,"Shotgun Shell":238,"Fusion Cell":74,"Mini Nuke":14},
- "aid":{"Stimpak":248,"RadAway":7,"Rad-X":7,"Jet":3,"Stealth Boy":2}}
+ "ammo":[
+   {"name":".308 Round","form_id":"0x0001F66B","count":1001},
+   {"name":"Shotgun Shell","form_id":"0x0001F673","count":238},
+   {"name":"Fusion Cell","form_id":"0x000C1897","count":74},
+   {"name":"Mini Nuke","form_id":"0x000E6B2E","count":14}
+ ],
+ "aid":[
+   {"name":"Stimpak","form_id":"0x00023736","count":248},
+   {"name":"RadAway","form_id":"0x00023742","count":7},
+   {"name":"Jet","form_id":"0x000366C5","count":3},
+   {"name":"Stealth Boy","form_id":"0x0004F4A6","count":2}
+ ]}
 ```
-Ammo and aid only list non-zero counts. Diffing start vs end gives session deltas.
+Ammo and aid only include non-zero counts. Diffing start vs end gives session deltas.
 
 **Events** — appended as they happen during the session:
 ```jsonl
@@ -93,6 +103,7 @@ Ammo and aid only list non-zero counts. Diffing start vs end gives session delta
 {"type":"stat","stat":"Creatures Killed","value":826,"time":"05:34"}
 {"type":"quest_stage","quest":"The Road to Freedom","stage":20,"time":"03:14"}
 {"type":"quest","name":"Reunions","state":"completed","time":"04:45"}
+{"type":"level","to":5,"perks":[{"name":"Rifleman","rank":1},{"name":"Sneak","rank":2}],"time":"05:35"}
 {"type":"menu_mode","menu":"PipboyMenu","state":"Entered","time":"01:16"}
 {"type":"used","category":"healing","item":"Stimpak","time":"05:41"}
 {"type":"used","category":"chem","item":"Jet","time":"05:52"}
@@ -104,6 +115,8 @@ Ammo and aid only list non-zero counts. Diffing start vs end gives session delta
 `killer` is empty when the player lands the kill directly; a companion name
 indicates companion-assisted kills. `av_change` fires only for SPECIAL stats
 (e.g. bobblehead pickup). `combat.state` 1 = in combat, 2 = out of combat.
+`level` includes the full perk list at the moment of level-up — diff consecutive
+`level` events to see what was selected.
 
 ## Notes
 

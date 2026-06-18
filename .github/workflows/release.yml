@@ -66,18 +66,6 @@ jobs:
           printf '## %s — %s\n\n%s\n' "$VERSION" "$DATE" "$NOTES" >> "$GITHUB_OUTPUT"
           echo "EOF" >> "$GITHUB_OUTPUT"
 
-      - name: Build Nexus description
-        id: nexus_desc
-        run: |
-          {
-            echo "description<<EOF"
-            printf '[size=5][b]Changelog — %s[/b][/size]\n\n' "${{ env.VERSION }}"
-            echo "${{ steps.changelog.outputs.entry }}"
-            echo ""
-            cat docs/nexus_description.bbcode
-            echo "EOF"
-          } >> "$GITHUB_OUTPUT"
-
       - name: Upload to Nexus Mods
         uses: Nexus-Mods/upload-action@v1.0.0-beta.8
         with:
@@ -86,5 +74,5 @@ jobs:
           filename: LudoTrace-FO4-${{ env.VERSION }}.zip
           version: ${{ env.VERSION }}
           display_name: LudoTrace FO4 ${{ env.VERSION }}
-          description: ${{ steps.nexus_desc.outputs.description }}
+          description: ${{ steps.changelog.outputs.entry }}
           archive_existing_version: true

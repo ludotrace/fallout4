@@ -77,7 +77,7 @@ in between.
 
 **session_start / session_end** — character state snapshot (identical schema):
 ```json
-{"type":"session_start","date":"2288-02-27","time":"01:09","level":40,"name":"Rhea",
+{"type":"session_start","date":"2288-02-27","game_time":"01:09","level":40,"name":"Rhea",
  "special":{"S":11,"P":7,"E":4,"C":7,"I":8,"A":6,"L":7},
  "bobbleheads":["Charisma","Intelligence"],
  "ammo":[
@@ -97,19 +97,19 @@ Ammo and aid only include non-zero counts. Diffing start vs end gives session de
 
 **Events** — appended as they happen during the session:
 ```jsonl
-{"type":"location","name":"The Slog","time":"01:12"}
-{"type":"near_collectible","category":"bobblehead","name":"Strength","location":"Mass Fusion Building","time":"05:39"}
-{"type":"kill","target":"Feral Ghoul Reaver","killer":"","time":"05:30"}
-{"type":"stat","stat":"Creatures Killed","value":826,"time":"05:34"}
-{"type":"quest_stage","quest":"The Road to Freedom","stage":20,"time":"03:14"}
-{"type":"quest","name":"Reunions","state":"completed","time":"04:45"}
-{"type":"level","to":5,"perks":[{"name":"Rifleman","rank":1},{"name":"Sneak","rank":2}],"time":"05:35"}
-{"type":"menu_mode","menu":"PipboyMenu","state":"Entered","time":"01:16"}
-{"type":"used","category":"healing","item":"Stimpak","time":"05:41"}
-{"type":"used","category":"chem","item":"Jet","time":"05:52"}
-{"type":"av_change","av":"Perception","from":7,"to":8,"time":"05:35"}
-{"type":"combat","actor":"Raider","state":2,"time":"05:30"}
-{"type":"limb","actor":"Brotherhood Knight","state":"Crippled","time":"05:30"}
+{"type":"location","name":"The Slog","game_time":"01:12"}
+{"type":"near_collectible","category":"bobblehead","name":"Strength","location":"Mass Fusion Building","game_time":"05:39"}
+{"type":"kill","target":"Feral Ghoul Reaver","killer":"","game_time":"05:30"}
+{"type":"stat","stat":"Creatures Killed","value":826,"game_time":"05:34"}
+{"type":"quest_stage","quest":"The Road to Freedom","stage":20,"game_time":"03:14"}
+{"type":"quest","name":"Reunions","state":"completed","game_time":"04:45"}
+{"type":"level","to":5,"perks":[{"name":"Rifleman","rank":1},{"name":"Sneak","rank":2}],"game_time":"05:35"}
+{"type":"menu_mode","menu":"PipboyMenu","state":"Entered","game_time":"01:16"}
+{"type":"used","category":"healing","item":"Stimpak","game_time":"05:41"}
+{"type":"used","category":"chem","item":"Jet","game_time":"05:52"}
+{"type":"av_change","av":"Perception","from":7,"to":8,"game_time":"05:35"}
+{"type":"combat","actor":"Raider","state":2,"game_time":"05:30"}
+{"type":"limb","actor":"Brotherhood Knight","state":"Crippled","game_time":"05:30"}
 ```
 
 `killer` is empty when the player lands the kill directly; a companion name

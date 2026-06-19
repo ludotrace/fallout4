@@ -215,7 +215,7 @@ string Function BuildStateJson(string asType) Global
     string sBob = BuildBobbleheadsJson()
     string sAmmo = BuildAmmoJson()
     string sAid = BuildAidJson()
-    return "{\"type\":\"" + asType + "\",\"date\":\"" + GameDate() + "\",\"game_time\":\"" + GameTime() + "\",\"level\":" + Game.GetPlayerLevel() + ",\"name\":\"" + player.GetDisplayName() + "\"," + special + ",\"bobbleheads\":" + sBob + ",\"ammo\":" + sAmmo + ",\"aid\":" + sAid + "}"
+    return "{\"type\":\"" + asType + "\",\"game_date\":\"" + GameDate() + "\",\"game_time\":\"" + GameTime() + "\",\"level\":" + Game.GetPlayerLevel() + ",\"name\":\"" + player.GetDisplayName() + "\"," + special + ",\"bobbleheads\":" + sBob + ",\"ammo\":" + sAmmo + ",\"aid\":" + sAid + "}"
 EndFunction
 
 ; -----------------------------------------------------------------------

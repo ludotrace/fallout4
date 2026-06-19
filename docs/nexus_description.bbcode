@@ -27,7 +27,7 @@ The log is plain JSONL (one JSON object per line) written to:
 [code]Fallout 4\lt_fo4_events.jsonl[/code]
 example:
 
-[code]{"type":"session_start","date":"2288-02-28","game_time":"07:50","level":40,"name":"Rhea","special":{"S":11,"P":7,"E":4,"C":7,"I":8,"A":6,"L":7},"bobbleheads":["Charisma","Intelligence","Strength"],"ammo":[{"name":"Mini Nuke","form_id":"0x000E6B2E","count":14},{"name":"Plasma Cartridge","form_id":"0x0001DBB7","count":912}],"aid":[{"name":"Stimpak","form_id":"0x00023736","count":252},{"name":"Jet","form_id":"0x000366C5","count":3}]}
+[code]{"type":"session_start","game_date":"2288-02-28","game_time":"07:50","level":40,"name":"Rhea","special":{"S":11,"P":7,"E":4,"C":7,"I":8,"A":6,"L":7},"bobbleheads":["Charisma","Intelligence","Strength"],"ammo":[{"name":"Mini Nuke","form_id":"0x000E6B2E","count":14},{"name":"Plasma Cartridge","form_id":"0x0001DBB7","count":912}],"aid":[{"name":"Stimpak","form_id":"0x00023736","count":252},{"name":"Jet","form_id":"0x000366C5","count":3}]}
 {"type":"location","name":"Vault 88","game_time":"18:17"}
 {"type":"kill","target":"Mole Rat Brood Mother","killer":"Rhea","game_time":"18:40"}
 {"type":"near_collectible","category":"bobblehead","name":"Endurance","location":"Poseidon Energy Turbine 18-F","game_time":"18:55"}
@@ -38,7 +38,7 @@ example:
 {"type":"stat","stat":"Stimpaks Taken","value":187,"time":"22:38"}
 {"type":"used","category":"chem","item":"Jet","game_time":"01:52"}
 {"type":"kill","target":"Mirelurk Queen","killer":"Rhea","game_time":"00:57"}
-{"type":"session_end","date":"2288-02-28","game_time":"03:40","level":41,"name":"Rhea","special":{"S":11,"P":7,"E":4,"C":7,"I":8,"A":6,"L":7},"bobbleheads":["Charisma","Intelligence","Strength"],"ammo":[{"name":"Mini Nuke","form_id":"0x000E6B2E","count":14},{"name":"Plasma Cartridge","form_id":"0x0001DBB7","count":912}],"aid":[{"name":"Stimpak","form_id":"0x00023736","count":250},{"name":"Jet","form_id":"0x000366C5","count":3}]}[/code]
+{"type":"session_end","game_date":"2288-02-28","game_time":"03:40","level":41,"name":"Rhea","special":{"S":11,"P":7,"E":4,"C":7,"I":8,"A":6,"L":7},"bobbleheads":["Charisma","Intelligence","Strength"],"ammo":[{"name":"Mini Nuke","form_id":"0x000E6B2E","count":14},{"name":"Plasma Cartridge","form_id":"0x0001DBB7","count":912}],"aid":[{"name":"Stimpak","form_id":"0x00023736","count":250},{"name":"Jet","form_id":"0x000366C5","count":3}]}[/code]
 
 You can read it, parse it, or feed it into any tool you like. The Claude.ai coaching workflow is built in, but the log is yours.
 

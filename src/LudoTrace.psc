@@ -674,11 +674,11 @@ Function WriteSessionStart() Global
 EndFunction
 
 ; -----------------------------------------------------------------------
-; OnPostSaveGameEvent — captures end-of-session state on save.
+; OnPostSaveGameEvent — mid-session snapshot on every save.
 ; -----------------------------------------------------------------------
 Function OnPostSaveGameEvent(Hydra:Events:PostSaveGameParams akParams) Global
-    Log(BuildStateJson("session_end"))
-    Debug.Notification("[LudoTrace] Session saved")
+    Log(BuildStateJson("save"))
+    Debug.Notification("[LudoTrace] Saved")
 EndFunction
 
 ; -----------------------------------------------------------------------

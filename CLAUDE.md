@@ -81,7 +81,7 @@ Quick quit: `qqq`
 - Hydra Script Function Runner calls global Papyrus functions on game events via `dist/Data/Hydra/ScriptFunctions/LudoTrace.json`
 - Hydra:Events supports global FunctionRefs — event callbacks can be registered from global functions, no persistent script object needed
 - **OnPostLoadGame** → `OnPostLoadGameEvent(Hydra:Events:PostLoadGameParams)` — registers all session event listeners, writes session-start state
-- **OnPostSaveGame** → `OnPostSaveGameEvent(Hydra:Events:PostSaveGameParams)` — reads session-start state, reads events log, writes combined snapshot
+- **OnPostSaveGame** → `OnPostSaveGameEvent(Hydra:Events:PostSaveGameParams)` — writes a `save` snapshot (same schema as session_start)
 - Script Function Runner requires the callback function to have the exact Params struct as its only parameter
 
 ### Session tracking model
@@ -100,14 +100,14 @@ During session:
     {"type":"kill","target":"Raider","killer":"","time":"14:45"}
 
 On Save:
-  → Append session_end (same schema as session_start)
+  → Append save (same schema as session_start — mid-session snapshot)
 ```
 
 Standalone users (no lt-client) read `lt_fo4_events.jsonl` directly and paste it into Claude.ai.
 
 ### Snapshot format (actual — JSONL)
 See README.md "Snapshot format" section for sample rows of every event type.
-Key event types: `session_start`, `session_end`, `location`, `near_collectible`,
+Key event types: `session_start`, `save`, `location`, `near_collectible`,
 `found`, `used`, `kill`, `stat`, `quest`, `quest_stage`, `av_change`, `combat`,
 `limb`, `menu_mode`, `activate`, `container`, `destruction`, `objective`.
 

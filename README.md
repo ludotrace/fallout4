@@ -128,3 +128,7 @@ indicates companion-assisted kills. `av_change` fires only for SPECIAL stats
   Papyrus Compiler v2.8.0.4 does not support struct arrays; this stub strips
   the array fields from `*Args` structs so the file compiles cleanly.
   Hydra's real compiled `.pex` is used at runtime — the stub is compile-time only.
+
+## Found a bug, or want to contribute?
+
+Open an issue or a pull request on [github.com/ludotrace/fallout4](https://github.com/ludotrace/fallout4).

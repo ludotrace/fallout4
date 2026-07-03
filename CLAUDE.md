@@ -127,3 +127,7 @@ Read it before adding new events or touching file I/O.
 - Hydra (nexusmods.com/fallout4/mods/104159)
 - Address Library for F4SE Plugins
 - Visual C++ Redistributable 2022+
+
+## Issues & PRs
+
+GitHub, single remote (`github.com/ludotrace/fallout4`). Issues and PRs both via `gh` (`gh issue create/list`, `gh pr create`) — pass `--repo ludotrace/fallout4` if running outside a clone.

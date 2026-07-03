@@ -4,6 +4,8 @@
 A Fallout 4 mod that writes a JSON character snapshot after each play session.
 The snapshot is pasted into Claude.ai (no API key required) for coaching feedback.
 
+Follows the LudoTrace mod spec — see `SPEC.md` at [github.com/ludotrace/mods](https://github.com/ludotrace/mods) — dumb emitter, append-only, no opinions.
+
 Coaching feel — not a tracker, not a cheat tool:
 - "You have a ghoul-slaying legendary but keep fighting ghouls with your pistol"
 - "Your Sanctuary water farm is 3x more efficient than your Castle one"

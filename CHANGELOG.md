@@ -1,3 +1,10 @@
+## v0.6.1 — 2026-07-04
+
+- Add `wall_time` to `session_start`/`save`/`session_end` events (#17) — a quoted Unix
+  timestamp from `Utility.GetCurrentRealTime()` (F4SE), since Papyrus has no system-clock
+  access on its own. Lets Core calculate real-world session duration (`duration_s`),
+  which was previously always `nil` for Fallout 4 sessions.
+
 ## v0.6.0 — 2026-07-04
 
 ## What's Changed

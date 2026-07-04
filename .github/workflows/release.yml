@@ -41,32 +41,6 @@ jobs:
           files: LudoTrace-FO4-${{ env.VERSION }}.zip
           generate_release_notes: true
 
-      - name: Update CHANGELOG.md
-        id: changelog
-        continue-on-error: true
-        run: |
-          VERSION="${{ env.VERSION }}"
-          DATE=$(date -u +%Y-%m-%d)
-          NOTES="${{ steps.gh_release.outputs.body }}"
-
-          {
-            printf '## %s — %s\n\n' "$VERSION" "$DATE"
-            echo "$NOTES"
-            echo ""
-            cat CHANGELOG.md 2>/dev/null || true
-          } > CHANGELOG.md.tmp
-          mv CHANGELOG.md.tmp CHANGELOG.md
-
-          echo "entry<<EOF" >> "$GITHUB_OUTPUT"
-          printf '## %s — %s\n\n%s\n' "$VERSION" "$DATE" "$NOTES" >> "$GITHUB_OUTPUT"
-          echo "EOF" >> "$GITHUB_OUTPUT"
-
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add CHANGELOG.md
-          git commit -m "Update CHANGELOG.md for $VERSION [skip ci]"
-          git push origin HEAD:main
-
       - name: Upload to Nexus Mods
         uses: Nexus-Mods/upload-action@v1.0.0-beta.8
         with:
@@ -75,5 +49,5 @@ jobs:
           filename: LudoTrace-FO4-${{ env.VERSION }}.zip
           version: ${{ env.VERSION }}
           display_name: LudoTrace FO4 ${{ env.VERSION }}
-          description: ${{ steps.changelog.outputs.entry }}
+          description: ${{ steps.gh_release.outputs.body }}
           archive_existing_version: true

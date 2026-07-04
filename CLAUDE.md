@@ -113,6 +113,22 @@ Key event types: `session_start`, `save`, `location`, `near_collectible`,
 `found`, `used`, `kill`, `stat`, `quest`, `quest_stage`, `av_change`, `combat`,
 `limb`, `menu_mode`, `activate`, `container`, `destruction`, `objective`.
 
+## Release process
+
+1. Bump `VERSION` and add the new entry to `CHANGELOG.md` in the same PR as the
+   change (or a dedicated version-bump PR) — merge to `main` through the normal
+   branch+PR flow before releasing.
+2. `make release` — guards clean state + `main` branch, tags `VERSION`, pushes the tag.
+3. The tag push triggers `.github/workflows/release.yml`: builds the zip from
+   `dist/`, creates the GitHub Release (auto-generated notes), uploads to NexusMods
+   using those same notes as the description.
+
+CI never writes back to the repo — no CHANGELOG commit, no risk of a blocked
+push against branch-protected `main`, no double commit per release. If `main`
+is a merge or two ahead of the tag by release time, that's expected; the
+workflow packages whatever `dist/` looks like at the ref it's given (tag push,
+or `main` via `workflow_dispatch` with a `version` input matching the intended tag).
+
 ## Hydra reference
 
 API surface, known bugs, event decisions, and validated patterns: see `docs/hydra-api.md`.

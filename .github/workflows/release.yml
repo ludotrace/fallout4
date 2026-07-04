@@ -43,6 +43,7 @@ jobs:
 
       - name: Update CHANGELOG.md
         id: changelog
+        continue-on-error: true
         run: |
           VERSION="${{ env.VERSION }}"
           DATE=$(date -u +%Y-%m-%d)
@@ -56,15 +57,15 @@ jobs:
           } > CHANGELOG.md.tmp
           mv CHANGELOG.md.tmp CHANGELOG.md
 
+          echo "entry<<EOF" >> "$GITHUB_OUTPUT"
+          printf '## %s — %s\n\n%s\n' "$VERSION" "$DATE" "$NOTES" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add CHANGELOG.md
           git commit -m "Update CHANGELOG.md for $VERSION [skip ci]"
           git push origin HEAD:main
-
-          echo "entry<<EOF" >> "$GITHUB_OUTPUT"
-          printf '## %s — %s\n\n%s\n' "$VERSION" "$DATE" "$NOTES" >> "$GITHUB_OUTPUT"
-          echo "EOF" >> "$GITHUB_OUTPUT"
 
       - name: Upload to Nexus Mods
         uses: Nexus-Mods/upload-action@v1.0.0-beta.8

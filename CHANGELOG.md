@@ -1,3 +1,9 @@
+## v0.7.0 — 2026-08-11
+
+- Events file renamed to `lt_fallout4_events.jsonl` (#27). Your existing
+  `lt_fo4_events.jsonl` stops growing; a new file starts alongside it.
+- Rework `wall_time` on `session_start`/`save` to read the clock via F4SE (#22).
+
 ## v0.6.1 — 2026-07-04
 
 - Add `wall_time` to `session_start`/`save`/`session_end` events (#17) — a quoted Unix

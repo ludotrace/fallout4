@@ -28,7 +28,7 @@ EndFunction
 ; Log — append one event line to the session log
 ; -----------------------------------------------------------------------
 Function Log(string asLine) Global
-    Hydra:IO:File.AppendLine("lt_fo4_events.jsonl", asLine)
+    Hydra:IO:File.AppendLine("lt_fallout4_events.jsonl", asLine)
 EndFunction
 
 ; -----------------------------------------------------------------------
@@ -754,7 +754,7 @@ Function OnPostLoadGameEvent(Hydra:Events:PostLoadGameParams akParams) Global
 EndFunction
 
 ; -----------------------------------------------------------------------
-; Event callbacks — all append one JSON line to lt_fo4_events.jsonl
+; Event callbacks — all append one JSON line to lt_fallout4_events.jsonl
 ; -----------------------------------------------------------------------
 
 int Function BobbleheadFormId(string asName) Global

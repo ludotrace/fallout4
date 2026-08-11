@@ -44,7 +44,7 @@ All machine-specific paths live in `tools/paths.local.bat` (gitignored). Variabl
 
 Derived paths:
 - Compiler: `%CK%\Papyrus Compiler\PapyrusCompiler.exe`
-- Session events log: `%GAME%\lt_fo4_events.jsonl`
+- Session events log: `%GAME%\lt_fallout4_events.jsonl`
 
 ## Log paths
 - F4SE + Hydra logs: `%MY_GAMES%\F4SE\`
@@ -95,11 +95,11 @@ The mod is a dumb event emitter. It does not manage sessions — that is lt-clie
 ```
 On Load:
   → Register for all Hydra events (see OnPostLoadGameEvent)
-  → Append session_start to lt_fo4_events.jsonl
+  → Append session_start to lt_fallout4_events.jsonl
     — includes level, SPECIAL, bobbleheads, ammo counts, aid counts
 
 During session:
-  → Each event appends one JSON line to lt_fo4_events.jsonl
+  → Each event appends one JSON line to lt_fallout4_events.jsonl
     {"type":"location","name":"Goodneighbor","time":"14:32"}
     {"type":"kill","target":"Raider","killer":"","time":"14:45"}
 
@@ -107,7 +107,7 @@ On Save:
   → Append save (same schema as session_start — mid-session snapshot)
 ```
 
-Standalone users (no lt-client) read `lt_fo4_events.jsonl` directly and paste it into Claude.ai.
+Standalone users (no lt-client) read `lt_fallout4_events.jsonl` directly and paste it into Claude.ai.
 
 ### Snapshot format (actual — JSONL)
 See README.md "Snapshot format" section for sample rows of every event type.

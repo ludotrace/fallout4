@@ -77,7 +77,7 @@ in between.
 
 **session_start / session_end** — character state snapshot (identical schema):
 ```json
-{"type":"session_start","game_date":"2288-02-27","game_time":"01:09","level":40,"name":"Rhea",
+{"type":"session_start","elapsed_s":1483,"game_date":"2288-02-27","game_time":"01:09","level":40,"name":"Rhea",
  "special":{"S":11,"P":7,"E":4,"C":7,"I":8,"A":6,"L":7},
  "bobbleheads":["Charisma","Intelligence"],
  "ammo":[
@@ -100,6 +100,9 @@ in between.
 ```
 Ammo and aid only include non-zero counts; `perks` lists only perks the player
 has taken, with their current rank. Diffing start vs end gives session deltas.
+`elapsed_s` is real seconds since the game engine started — Papyrus has no
+wall-clock, so the difference between two `elapsed_s` values is the only real-time
+measurement available (e.g. `save` minus `session_start` = real session length).
 
 **Events** — appended as they happen during the session:
 ```jsonl

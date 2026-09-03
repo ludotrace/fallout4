@@ -1,3 +1,13 @@
+## v0.7.2 — 2026-09-02
+
+- Escape engine-supplied strings before interpolating them into event JSON
+  (#32). Actor, quest, item, location, and menu names — and the player's own
+  character name in `session_start`/`save` — were dropped straight between the
+  `"` quotes of a JSON value with no escaping, so any `"`, `\`, or control
+  character in one broke that line for `lt-validate`. An embedded newline
+  split the line in two. Latent until now only because no captured character
+  name or item happened to contain a quote.
+
 ## v0.7.1 — 2026-09-02
 
 - Fix timestamp fields to match the mod spec (#30):

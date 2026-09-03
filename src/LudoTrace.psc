@@ -39,6 +39,43 @@ Function Log(string asLine) Global
 EndFunction
 
 ; -----------------------------------------------------------------------
+; JsonEscape — make an engine-supplied string safe to drop between the
+; double quotes of an event JSON value.
+;
+; Every event line is built by concatenation, so a raw `"`, `\`, or
+; control char in an actor/quest/item/menu name — or in the player's own
+; character name — breaks that line for lt-validate (a newline is worse:
+; it splits one line into two). Apply this to every interpolated value
+; that comes from the engine or the player. See issue #32.
+;
+; Backslash is replaced first so the escapes we add aren't re-escaped.
+; Covers the RFC 8259 minimum (`\`, `"`) plus the control chars that
+; actually turn up in game strings (tab, CR, LF).
+;
+; The Papyrus compiler only understands one string escape, `\"`, so the
+; backslash and the control chars we search for are built from their code
+; points via Hydra:Strings.FromCharCodeArray.
+; -----------------------------------------------------------------------
+string Function CharFromCode(int aiCode) Global
+    int[] codes = new int[1]
+    codes[0] = aiCode
+    return Hydra:Strings.FromCharCodeArray(codes)
+EndFunction
+
+string Function JsonEscape(string asValue) Global
+    if asValue == ""
+        return asValue
+    endif
+    string bs = CharFromCode(92)   ; a single backslash
+    string result = Hydra:Strings.Replace(asValue, bs, bs + bs)
+    result = Hydra:Strings.Replace(result, "\"", bs + "\"")
+    result = Hydra:Strings.Replace(result, CharFromCode(9),  bs + "t")
+    result = Hydra:Strings.Replace(result, CharFromCode(13), bs + "r")
+    result = Hydra:Strings.Replace(result, CharFromCode(10), bs + "n")
+    return result
+EndFunction
+
+; -----------------------------------------------------------------------
 ; BuildStateJson — current character state as a JSON string.
 ; Shared by WriteSessionStart and OnPostSaveGameEvent.
 ; -----------------------------------------------------------------------
@@ -672,7 +709,7 @@ string Function BuildStateJson(string asType) Global
     ; Papyrus has no wall-clock source, so the mod can't emit a real UTC `wall_time`
     ; instant — but the delta between two elapsed_s readings is a true measure of
     ; real-world session length. See issue #30.
-    return "{\"type\":\"" + asType + "\",\"elapsed_s\":" + (Utility.GetCurrentRealTime() as int) + ",\"game_date\":\"" + GameDate() + "\",\"game_time\":\"" + GameTime() + "\",\"level\":" + Game.GetPlayerLevel() + ",\"name\":\"" + player.GetDisplayName() + "\"," + special + ",\"bobbleheads\":" + sBob + ",\"ammo\":" + sAmmo + ",\"aid\":" + sAid + ",\"perks\":" + sPerks + "}"
+    return "{\"type\":\"" + asType + "\",\"elapsed_s\":" + (Utility.GetCurrentRealTime() as int) + ",\"game_date\":\"" + GameDate() + "\",\"game_time\":\"" + GameTime() + "\",\"level\":" + Game.GetPlayerLevel() + ",\"name\":\"" + JsonEscape(player.GetDisplayName()) + "\"," + special + ",\"bobbleheads\":" + sBob + ",\"ammo\":" + sAmmo + ",\"aid\":" + sAid + ",\"perks\":" + sPerks + "}"
 EndFunction
 
 ; -----------------------------------------------------------------------
@@ -924,14 +961,14 @@ Function OnLocationEnterExitEvent(Hydra:Events:LocationEnterExitParams akParams)
     Hydra:TempSet.Add("sc_locations", name)
     string bobblehead = BobbleheadAtLocation(name)
     if bobblehead != "" && !PlayerHasBobblehead(bobblehead)
-        Log("{\"type\":\"near_collectible\",\"category\":\"bobblehead\",\"name\":\"" + bobblehead + "\",\"location\":\"" + name + "\",\"game_time\":\"" + GameTime() + "\"}")
+        Log("{\"type\":\"near_collectible\",\"category\":\"bobblehead\",\"name\":\"" + bobblehead + "\",\"location\":\"" + JsonEscape(name) + "\",\"game_time\":\"" + GameTime() + "\"}")
         Debug.Notification("[LudoTrace] Bobblehead nearby: " + bobblehead)
     endif
-    Log("{\"type\":\"location\",\"name\":\"" + name + "\",\"game_time\":\"" + GameTime() + "\"}")
+    Log("{\"type\":\"location\",\"name\":\"" + JsonEscape(name) + "\",\"game_time\":\"" + GameTime() + "\"}")
 EndFunction
 
 Function OnLocationLoadEvent(Hydra:Events:LocationLoadParams akParams) Global
-    Log("{\"type\":\"location_load\",\"name\":\"" + akParams.kSourceLocation.GetName() + "\",\"game_time\":\"" + GameTime() + "\"}")
+    Log("{\"type\":\"location_load\",\"name\":\"" + JsonEscape(akParams.kSourceLocation.GetName()) + "\",\"game_time\":\"" + GameTime() + "\"}")
 EndFunction
 
 Function OnLevelIncreaseEvent(Hydra:Events:LevelIncreaseParams akParams) Global
@@ -940,7 +977,7 @@ Function OnLevelIncreaseEvent(Hydra:Events:LevelIncreaseParams akParams) Global
 EndFunction
 
 Function OnQuestStageChangeEvent(Hydra:Events:QuestStageChangeParams akParams) Global
-    Log("{\"type\":\"quest_stage\",\"quest\":\"" + akParams.kSourceQuest.GetName() + "\",\"stage\":" + akParams.iNewStageId + ",\"game_time\":\"" + GameTime() + "\"}")
+    Log("{\"type\":\"quest_stage\",\"quest\":\"" + JsonEscape(akParams.kSourceQuest.GetName()) + "\",\"stage\":" + akParams.iNewStageId + ",\"game_time\":\"" + GameTime() + "\"}")
 EndFunction
 
 Function OnQuestStartStopEvent(Hydra:Events:QuestStartStopParams akParams) Global
@@ -952,23 +989,23 @@ Function OnQuestStartStopEvent(Hydra:Events:QuestStartStopParams akParams) Globa
     else
         sState = "completed"
     endif
-    Log("{\"type\":\"quest\",\"name\":\"" + akParams.kSourceQuest.GetName() + "\",\"state\":\"" + sState + "\",\"game_time\":\"" + GameTime() + "\"}")
+    Log("{\"type\":\"quest\",\"name\":\"" + JsonEscape(akParams.kSourceQuest.GetName()) + "\",\"state\":\"" + sState + "\",\"game_time\":\"" + GameTime() + "\"}")
 EndFunction
 
 Function OnQuestObjectiveChangeEvent(Hydra:Events:QuestObjectiveChangeParams akParams) Global
-    Log("{\"type\":\"objective\",\"quest\":\"" + akParams.kSourceQuest.GetName() + "\",\"id\":" + akParams.iNewObjectiveId + ",\"state\":" + akParams.iNewObjectiveState + ",\"game_time\":\"" + GameTime() + "\"}")
+    Log("{\"type\":\"objective\",\"quest\":\"" + JsonEscape(akParams.kSourceQuest.GetName()) + "\",\"id\":" + akParams.iNewObjectiveId + ",\"state\":" + akParams.iNewObjectiveState + ",\"game_time\":\"" + GameTime() + "\"}")
 EndFunction
 
 Function OnActorDeathEvent(Hydra:Events:ActorDeathParams akParams) Global
-    Log("{\"type\":\"kill\",\"target\":\"" + akParams.kTargetActor.GetDisplayName() + "\",\"killer\":\"" + akParams.kSourceActor.GetDisplayName() + "\",\"game_time\":\"" + GameTime() + "\"}")
+    Log("{\"type\":\"kill\",\"target\":\"" + JsonEscape(akParams.kTargetActor.GetDisplayName()) + "\",\"killer\":\"" + JsonEscape(akParams.kSourceActor.GetDisplayName()) + "\",\"game_time\":\"" + GameTime() + "\"}")
 EndFunction
 
 Function OnMiscStatChangeEvent(Hydra:Events:MiscStatChangeParams akParams) Global
-    Log("{\"type\":\"stat\",\"stat\":\"" + akParams.sStatId + "\",\"value\":" + akParams.iNewValue + ",\"game_time\":\"" + GameTime() + "\"}")
+    Log("{\"type\":\"stat\",\"stat\":\"" + JsonEscape(akParams.sStatId) + "\",\"value\":" + akParams.iNewValue + ",\"game_time\":\"" + GameTime() + "\"}")
 EndFunction
 
 Function OnBookReadEvent(Hydra:Events:BookReadParams akParams) Global
-    Log("{\"type\":\"found\",\"category\":\"magazine\",\"name\":\"" + akParams.kBook.GetName() + "\",\"game_time\":\"" + GameTime() + "\"}")
+    Log("{\"type\":\"found\",\"category\":\"magazine\",\"name\":\"" + JsonEscape(akParams.kBook.GetName()) + "\",\"game_time\":\"" + GameTime() + "\"}")
 EndFunction
 
 Function OnActorValueChangeEvent(Hydra:Events:ActorValueChangeParams akParams) Global
@@ -976,7 +1013,7 @@ Function OnActorValueChangeEvent(Hydra:Events:ActorValueChangeParams akParams) G
     if id < 706 || id > 712
         return
     endif
-    Log("{\"type\":\"av_change\",\"av\":\"" + akParams.kSourceValue.GetName() + "\",\"from\":" + (akParams.fOldValue as int) + ",\"to\":" + (akParams.fNewValue as int) + ",\"game_time\":\"" + GameTime() + "\"}")
+    Log("{\"type\":\"av_change\",\"av\":\"" + JsonEscape(akParams.kSourceValue.GetName()) + "\",\"from\":" + (akParams.fOldValue as int) + ",\"to\":" + (akParams.fNewValue as int) + ",\"game_time\":\"" + GameTime() + "\"}")
 EndFunction
 
 Function OnLockPickEvent(Hydra:Events:LockPickParams akParams) Global
@@ -994,7 +1031,7 @@ Function OnItemEquipUnequipEvent(Hydra:Events:ItemEquipUnequipParams akParams) G
     else
         sAction = "unequipped"
     endif
-    Log("{\"type\":\"equip\",\"item\":\"" + akParams.kItem.GetName() + "\",\"action\":\"" + sAction + "\",\"game_time\":\"" + GameTime() + "\"}")
+    Log("{\"type\":\"equip\",\"item\":\"" + JsonEscape(akParams.kItem.GetName()) + "\",\"action\":\"" + sAction + "\",\"game_time\":\"" + GameTime() + "\"}")
 EndFunction
 
 string Function AidItemCategory(string asName) Global
@@ -1032,19 +1069,19 @@ Function OnItemAddRemoveEvent(Hydra:Events:ItemAddRemoveParams akParams) Global
     string name = akParams.kItem.GetName()
     if akParams.iItemCount > 0
         if Hydra:Strings.Contains(name, "Bobblehead")
-            Log("{\"type\":\"found\",\"category\":\"bobblehead\",\"name\":\"" + name + "\",\"game_time\":\"" + GameTime() + "\"}")
+            Log("{\"type\":\"found\",\"category\":\"bobblehead\",\"name\":\"" + JsonEscape(name) + "\",\"game_time\":\"" + GameTime() + "\"}")
         endif
     elseif akParams.iItemCount < 0
         string category = AidItemCategory(name)
         if category != ""
-            Log("{\"type\":\"used\",\"category\":\"" + category + "\",\"item\":\"" + name + "\",\"game_time\":\"" + GameTime() + "\"}")
+            Log("{\"type\":\"used\",\"category\":\"" + category + "\",\"item\":\"" + JsonEscape(name) + "\",\"game_time\":\"" + GameTime() + "\"}")
         endif
     endif
 EndFunction
 
 Function OnCombatStateChangeEvent(Hydra:Events:CombatStateChangeParams akParams) Global
     ; iNewState: 0=none 1=in combat 2=searching
-    Log("{\"type\":\"combat\",\"actor\":\"" + akParams.kSourceActor.GetDisplayName() + "\",\"state\":" + akParams.iNewState + ",\"game_time\":\"" + GameTime() + "\"}")
+    Log("{\"type\":\"combat\",\"actor\":\"" + JsonEscape(akParams.kSourceActor.GetDisplayName()) + "\",\"state\":" + akParams.iNewState + ",\"game_time\":\"" + GameTime() + "\"}")
 EndFunction
 
 Function OnPerkPointIncreaseEvent(Hydra:Events:PerkPointIncreaseParams akParams) Global
@@ -1052,7 +1089,7 @@ Function OnPerkPointIncreaseEvent(Hydra:Events:PerkPointIncreaseParams akParams)
 EndFunction
 
 Function OnPerkEntryRunEvent(Hydra:Events:PerkEntryRunParams akParams) Global
-    Log("{\"type\":\"perk_run\",\"perk\":\"" + akParams.kPerk.GetName() + "\",\"game_time\":\"" + GameTime() + "\"}")
+    Log("{\"type\":\"perk_run\",\"perk\":\"" + JsonEscape(akParams.kPerk.GetName()) + "\",\"game_time\":\"" + GameTime() + "\"}")
 EndFunction
 
 Function OnSleepStartStopEvent(Hydra:Events:SleepStartStopParams akParams) Global
@@ -1076,11 +1113,11 @@ Function OnWaitStartStopEvent(Hydra:Events:WaitStartStopParams akParams) Global
 EndFunction
 
 Function OnObjectSellEvent(Hydra:Events:ObjectSellParams akParams) Global
-    Log("{\"type\":\"sell\",\"item\":\"" + akParams.kItemRef.GetDisplayName() + "\",\"game_time\":\"" + GameTime() + "\"}")
+    Log("{\"type\":\"sell\",\"item\":\"" + JsonEscape(akParams.kItemRef.GetDisplayName()) + "\",\"game_time\":\"" + GameTime() + "\"}")
 EndFunction
 
 Function OnObjectHarvestEvent(Hydra:Events:ObjectHarvestParams akParams) Global
-    Log("{\"type\":\"harvest\",\"item\":\"" + akParams.kItem.GetName() + "\",\"game_time\":\"" + GameTime() + "\"}")
+    Log("{\"type\":\"harvest\",\"item\":\"" + JsonEscape(akParams.kItem.GetName()) + "\",\"game_time\":\"" + GameTime() + "\"}")
 EndFunction
 
 Function OnMenuModeEnterExitEvent(Hydra:Events:MenuModeEnterExitParams akParams) Global
@@ -1090,7 +1127,7 @@ Function OnMenuModeEnterExitEvent(Hydra:Events:MenuModeEnterExitParams akParams)
     else
         sState = "exited"
     endif
-    Log("{\"type\":\"menu_mode\",\"menu\":\"" + akParams.sMenuName + "\",\"state\":\"" + sState + "\",\"game_time\":\"" + GameTime() + "\"}")
+    Log("{\"type\":\"menu_mode\",\"menu\":\"" + JsonEscape(akParams.sMenuName) + "\",\"state\":\"" + sState + "\",\"game_time\":\"" + GameTime() + "\"}")
 EndFunction
 
 Function OnMenuOpenCloseCB(Hydra:Events:MenuOpenCloseParams akParams) Global
@@ -1105,7 +1142,7 @@ Function OnMenuOpenCloseCB(Hydra:Events:MenuOpenCloseParams akParams) Global
     else
         sState = "closed"
     endif
-    Log("{\"type\":\"menu\",\"menu\":\"" + menu + "\",\"state\":\"" + sState + "\",\"game_time\":\"" + GameTime() + "\"}")
+    Log("{\"type\":\"menu\",\"menu\":\"" + JsonEscape(menu) + "\",\"state\":\"" + sState + "\",\"game_time\":\"" + GameTime() + "\"}")
 EndFunction
 
 Function OnDifficultyChangeEvent(Hydra:Events:DifficultyChangeParams akParams) Global
@@ -1113,7 +1150,7 @@ Function OnDifficultyChangeEvent(Hydra:Events:DifficultyChangeParams akParams) G
 EndFunction
 
 Function OnLifeStateChangeEvent(Hydra:Events:LifeStateChangeParams akParams) Global
-    Log("{\"type\":\"life_state\",\"actor\":\"" + akParams.kSourceActor.GetDisplayName() + "\",\"from\":" + akParams.iOldState + ",\"to\":" + akParams.iNewState + ",\"game_time\":\"" + GameTime() + "\"}")
+    Log("{\"type\":\"life_state\",\"actor\":\"" + JsonEscape(akParams.kSourceActor.GetDisplayName()) + "\",\"from\":" + akParams.iOldState + ",\"to\":" + akParams.iNewState + ",\"game_time\":\"" + GameTime() + "\"}")
 EndFunction
 
 Function OnLimbCrippleEvent(Hydra:Events:LimbCrippleParams akParams) Global
@@ -1123,7 +1160,7 @@ Function OnLimbCrippleEvent(Hydra:Events:LimbCrippleParams akParams) Global
     else
         sState = "healed"
     endif
-    Log("{\"type\":\"limb\",\"actor\":\"" + akParams.kSourceActor.GetDisplayName() + "\",\"state\":\"" + sState + "\",\"game_time\":\"" + GameTime() + "\"}")
+    Log("{\"type\":\"limb\",\"actor\":\"" + JsonEscape(akParams.kSourceActor.GetDisplayName()) + "\",\"state\":\"" + sState + "\",\"game_time\":\"" + GameTime() + "\"}")
 EndFunction
 
 Function OnFurnitureEnterExitEvent(Hydra:Events:FurnitureEnterExitParams akParams) Global
@@ -1133,7 +1170,7 @@ Function OnFurnitureEnterExitEvent(Hydra:Events:FurnitureEnterExitParams akParam
     else
         sState = "exited"
     endif
-    Log("{\"type\":\"furniture\",\"name\":\"" + akParams.kTargetRef.GetDisplayName() + "\",\"state\":\"" + sState + "\",\"game_time\":\"" + GameTime() + "\"}")
+    Log("{\"type\":\"furniture\",\"name\":\"" + JsonEscape(akParams.kTargetRef.GetDisplayName()) + "\",\"state\":\"" + sState + "\",\"game_time\":\"" + GameTime() + "\"}")
 EndFunction
 
 Function OnObjectActivateEvent(Hydra:Events:ObjectActivateParams akParams) Global
@@ -1141,7 +1178,7 @@ Function OnObjectActivateEvent(Hydra:Events:ObjectActivateParams akParams) Globa
     if name == ""
         return
     endif
-    Log("{\"type\":\"activate\",\"target\":\"" + name + "\",\"game_time\":\"" + GameTime() + "\"}")
+    Log("{\"type\":\"activate\",\"target\":\"" + JsonEscape(name) + "\",\"game_time\":\"" + GameTime() + "\"}")
 EndFunction
 
 Function OnSpellCastEvent(Hydra:Events:SpellCastParams akParams) Global
@@ -1203,10 +1240,10 @@ Function OnCellEnterExitEvent(Hydra:Events:CellEnterExitParams akParams) Global
     Hydra:TempSet.Add("sc_locations", name)
     string bobblehead = BobbleheadAtLocation(name)
     if bobblehead != "" && !PlayerHasBobblehead(bobblehead)
-        Log("{\"type\":\"near_collectible\",\"category\":\"bobblehead\",\"name\":\"" + bobblehead + "\",\"location\":\"" + name + "\",\"game_time\":\"" + GameTime() + "\"}")
+        Log("{\"type\":\"near_collectible\",\"category\":\"bobblehead\",\"name\":\"" + bobblehead + "\",\"location\":\"" + JsonEscape(name) + "\",\"game_time\":\"" + GameTime() + "\"}")
         Debug.Notification("[LudoTrace] Bobblehead nearby: " + bobblehead)
     endif
-    Log("{\"type\":\"location\",\"name\":\"" + name + "\",\"game_time\":\"" + GameTime() + "\"}")
+    Log("{\"type\":\"location\",\"name\":\"" + JsonEscape(name) + "\",\"game_time\":\"" + GameTime() + "\"}")
 EndFunction
 
 Function OnActiveEffectApplyRemoveEvent(Hydra:Events:ActiveEffectApplyRemoveParams akParams) Global
@@ -1216,5 +1253,5 @@ Function OnActiveEffectApplyRemoveEvent(Hydra:Events:ActiveEffectApplyRemovePara
     else
         sState = "removed"
     endif
-    Log("{\"type\":\"effect\",\"target\":\"" + akParams.kTargetActor.GetDisplayName() + "\",\"state\":\"" + sState + "\",\"game_time\":\"" + GameTime() + "\"}")
+    Log("{\"type\":\"effect\",\"target\":\"" + JsonEscape(akParams.kTargetActor.GetDisplayName()) + "\",\"state\":\"" + sState + "\",\"game_time\":\"" + GameTime() + "\"}")
 EndFunction

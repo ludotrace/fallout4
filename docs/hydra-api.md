@@ -15,6 +15,12 @@ Hydra nexus page: nexusmods.com/fallout4/mods/104159
 
 ### Time
 - `Hydra:Time.GetGameYear/Month/Day/Hour/Minute()` — in-game calendar values (ints/floats)
+  - `GetGameYear()` returns a 3-digit value in-world (e.g. `288` for 2288). `GameDate()`
+    in `LudoTrace.psc` adds 2000 when the year is < 1000 so `game_date` is a valid
+    ISO 8601 date (issue #30).
+  - No real-world / wall-clock source exists in this toolchain. `Utility.GetCurrentRealTime()`
+    (F4SE) is seconds since engine start, emitted as `elapsed_s` — deltas measure real
+    session length; absolute wall time is unavailable.
 
 ### Events
 - `Hydra:Events.RegisterFor*(FunctionRef)` — register a global function as an event listener

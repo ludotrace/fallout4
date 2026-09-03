@@ -1,3 +1,16 @@
+## v0.7.1 — 2026-09-02
+
+- Fix timestamp fields to match the mod spec (#30):
+  - Rename `time` → `game_time` on 11 event types (`quest_stage`, `objective`,
+    `stat`, `av_change`, `lockpick`, `terminal`, `combat`, `perk_point`,
+    `difficulty`, `life_state`, `destruction`) so the in-game clock is readable
+    under the spec-defined key.
+  - Drop `wall_time` from `session_start`/`save`. Papyrus has no wall-clock
+    source, so the counter now rides as `elapsed_s` (real seconds since engine
+    start) — its own key instead of masquerading as an ISO 8601 instant.
+  - Correct `game_date`'s 3-digit year (`288-03-06` → `2288-03-06`) so it's a
+    valid ISO 8601 date.
+
 ## v0.7.0 — 2026-08-11
 
 - Events file renamed to `lt_fallout4_events.jsonl` (#27). Your existing

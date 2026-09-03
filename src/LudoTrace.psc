@@ -14,7 +14,14 @@ EndFunction
 ; GameDate — in-game date as "YYYY-MM-DD"
 ; -----------------------------------------------------------------------
 string Function GameDate() Global
-    return Hydra:Time.GetGameYear() + "-" + ZeroPad(Hydra:Time.GetGameMonth()) + "-" + ZeroPad(Hydra:Time.GetGameDay())
+    ; GetGameYear() returns a 3-digit value in-world (e.g. 288 for the year 2288),
+    ; which fails ISO 8601 date validation. Correct the missing millennium so the
+    ; field is a real "YYYY-MM-DD" date. See issue #30.
+    int year = Hydra:Time.GetGameYear()
+    if year < 1000
+        year += 2000
+    endif
+    return year + "-" + ZeroPad(Hydra:Time.GetGameMonth()) + "-" + ZeroPad(Hydra:Time.GetGameDay())
 EndFunction
 
 ; -----------------------------------------------------------------------
@@ -661,7 +668,11 @@ string Function BuildStateJson(string asType) Global
     string sAmmo = BuildAmmoJson()
     string sAid = BuildAidJson()
     string sPerks = BuildPerksJson()
-    return "{\"type\":\"" + asType + "\",\"wall_time\":\"" + (Utility.GetCurrentRealTime() as int) + "\",\"game_date\":\"" + GameDate() + "\",\"game_time\":\"" + GameTime() + "\",\"level\":" + Game.GetPlayerLevel() + ",\"name\":\"" + player.GetDisplayName() + "\"," + special + ",\"bobbleheads\":" + sBob + ",\"ammo\":" + sAmmo + ",\"aid\":" + sAid + ",\"perks\":" + sPerks + "}"
+    ; elapsed_s: real seconds since the engine started (Utility.GetCurrentRealTime).
+    ; Papyrus has no wall-clock source, so the mod can't emit a real UTC `wall_time`
+    ; instant — but the delta between two elapsed_s readings is a true measure of
+    ; real-world session length. See issue #30.
+    return "{\"type\":\"" + asType + "\",\"elapsed_s\":" + (Utility.GetCurrentRealTime() as int) + ",\"game_date\":\"" + GameDate() + "\",\"game_time\":\"" + GameTime() + "\",\"level\":" + Game.GetPlayerLevel() + ",\"name\":\"" + player.GetDisplayName() + "\"," + special + ",\"bobbleheads\":" + sBob + ",\"ammo\":" + sAmmo + ",\"aid\":" + sAid + ",\"perks\":" + sPerks + "}"
 EndFunction
 
 ; -----------------------------------------------------------------------
@@ -929,7 +940,7 @@ Function OnLevelIncreaseEvent(Hydra:Events:LevelIncreaseParams akParams) Global
 EndFunction
 
 Function OnQuestStageChangeEvent(Hydra:Events:QuestStageChangeParams akParams) Global
-    Log("{\"type\":\"quest_stage\",\"quest\":\"" + akParams.kSourceQuest.GetName() + "\",\"stage\":" + akParams.iNewStageId + ",\"time\":\"" + GameTime() + "\"}")
+    Log("{\"type\":\"quest_stage\",\"quest\":\"" + akParams.kSourceQuest.GetName() + "\",\"stage\":" + akParams.iNewStageId + ",\"game_time\":\"" + GameTime() + "\"}")
 EndFunction
 
 Function OnQuestStartStopEvent(Hydra:Events:QuestStartStopParams akParams) Global
@@ -945,7 +956,7 @@ Function OnQuestStartStopEvent(Hydra:Events:QuestStartStopParams akParams) Globa
 EndFunction
 
 Function OnQuestObjectiveChangeEvent(Hydra:Events:QuestObjectiveChangeParams akParams) Global
-    Log("{\"type\":\"objective\",\"quest\":\"" + akParams.kSourceQuest.GetName() + "\",\"id\":" + akParams.iNewObjectiveId + ",\"state\":" + akParams.iNewObjectiveState + ",\"time\":\"" + GameTime() + "\"}")
+    Log("{\"type\":\"objective\",\"quest\":\"" + akParams.kSourceQuest.GetName() + "\",\"id\":" + akParams.iNewObjectiveId + ",\"state\":" + akParams.iNewObjectiveState + ",\"game_time\":\"" + GameTime() + "\"}")
 EndFunction
 
 Function OnActorDeathEvent(Hydra:Events:ActorDeathParams akParams) Global
@@ -953,7 +964,7 @@ Function OnActorDeathEvent(Hydra:Events:ActorDeathParams akParams) Global
 EndFunction
 
 Function OnMiscStatChangeEvent(Hydra:Events:MiscStatChangeParams akParams) Global
-    Log("{\"type\":\"stat\",\"stat\":\"" + akParams.sStatId + "\",\"value\":" + akParams.iNewValue + ",\"time\":\"" + GameTime() + "\"}")
+    Log("{\"type\":\"stat\",\"stat\":\"" + akParams.sStatId + "\",\"value\":" + akParams.iNewValue + ",\"game_time\":\"" + GameTime() + "\"}")
 EndFunction
 
 Function OnBookReadEvent(Hydra:Events:BookReadParams akParams) Global
@@ -965,15 +976,15 @@ Function OnActorValueChangeEvent(Hydra:Events:ActorValueChangeParams akParams) G
     if id < 706 || id > 712
         return
     endif
-    Log("{\"type\":\"av_change\",\"av\":\"" + akParams.kSourceValue.GetName() + "\",\"from\":" + (akParams.fOldValue as int) + ",\"to\":" + (akParams.fNewValue as int) + ",\"time\":\"" + GameTime() + "\"}")
+    Log("{\"type\":\"av_change\",\"av\":\"" + akParams.kSourceValue.GetName() + "\",\"from\":" + (akParams.fOldValue as int) + ",\"to\":" + (akParams.fNewValue as int) + ",\"game_time\":\"" + GameTime() + "\"}")
 EndFunction
 
 Function OnLockPickEvent(Hydra:Events:LockPickParams akParams) Global
-    Log("{\"type\":\"lockpick\",\"level\":" + akParams.iLockLevel + ",\"time\":\"" + GameTime() + "\"}")
+    Log("{\"type\":\"lockpick\",\"level\":" + akParams.iLockLevel + ",\"game_time\":\"" + GameTime() + "\"}")
 EndFunction
 
 Function OnTerminalHackEvent(Hydra:Events:TerminalHackParams akParams) Global
-    Log("{\"type\":\"terminal\",\"level\":" + akParams.iLockLevel + ",\"time\":\"" + GameTime() + "\"}")
+    Log("{\"type\":\"terminal\",\"level\":" + akParams.iLockLevel + ",\"game_time\":\"" + GameTime() + "\"}")
 EndFunction
 
 Function OnItemEquipUnequipEvent(Hydra:Events:ItemEquipUnequipParams akParams) Global
@@ -1033,11 +1044,11 @@ EndFunction
 
 Function OnCombatStateChangeEvent(Hydra:Events:CombatStateChangeParams akParams) Global
     ; iNewState: 0=none 1=in combat 2=searching
-    Log("{\"type\":\"combat\",\"actor\":\"" + akParams.kSourceActor.GetDisplayName() + "\",\"state\":" + akParams.iNewState + ",\"time\":\"" + GameTime() + "\"}")
+    Log("{\"type\":\"combat\",\"actor\":\"" + akParams.kSourceActor.GetDisplayName() + "\",\"state\":" + akParams.iNewState + ",\"game_time\":\"" + GameTime() + "\"}")
 EndFunction
 
 Function OnPerkPointIncreaseEvent(Hydra:Events:PerkPointIncreaseParams akParams) Global
-    Log("{\"type\":\"perk_point\",\"total\":" + akParams.iNewCount + ",\"time\":\"" + GameTime() + "\"}")
+    Log("{\"type\":\"perk_point\",\"total\":" + akParams.iNewCount + ",\"game_time\":\"" + GameTime() + "\"}")
 EndFunction
 
 Function OnPerkEntryRunEvent(Hydra:Events:PerkEntryRunParams akParams) Global
@@ -1098,11 +1109,11 @@ Function OnMenuOpenCloseCB(Hydra:Events:MenuOpenCloseParams akParams) Global
 EndFunction
 
 Function OnDifficultyChangeEvent(Hydra:Events:DifficultyChangeParams akParams) Global
-    Log("{\"type\":\"difficulty\",\"from\":" + akParams.iOldDifficulty + ",\"to\":" + akParams.iNewDifficulty + ",\"time\":\"" + GameTime() + "\"}")
+    Log("{\"type\":\"difficulty\",\"from\":" + akParams.iOldDifficulty + ",\"to\":" + akParams.iNewDifficulty + ",\"game_time\":\"" + GameTime() + "\"}")
 EndFunction
 
 Function OnLifeStateChangeEvent(Hydra:Events:LifeStateChangeParams akParams) Global
-    Log("{\"type\":\"life_state\",\"actor\":\"" + akParams.kSourceActor.GetDisplayName() + "\",\"from\":" + akParams.iOldState + ",\"to\":" + akParams.iNewState + ",\"time\":\"" + GameTime() + "\"}")
+    Log("{\"type\":\"life_state\",\"actor\":\"" + akParams.kSourceActor.GetDisplayName() + "\",\"from\":" + akParams.iOldState + ",\"to\":" + akParams.iNewState + ",\"game_time\":\"" + GameTime() + "\"}")
 EndFunction
 
 Function OnLimbCrippleEvent(Hydra:Events:LimbCrippleParams akParams) Global
@@ -1168,7 +1179,7 @@ Function OnObjectGrabReleaseEvent(Hydra:Events:ObjectGrabReleaseParams akParams)
 EndFunction
 
 Function OnDestructionStageChangeEvent(Hydra:Events:DestructionStageChangeParams akParams) Global
-    Log("{\"type\":\"destruction\",\"from\":" + akParams.iOldStage + ",\"to\":" + akParams.iNewStage + ",\"time\":\"" + GameTime() + "\"}")
+    Log("{\"type\":\"destruction\",\"from\":" + akParams.iOldStage + ",\"to\":" + akParams.iNewStage + ",\"game_time\":\"" + GameTime() + "\"}")
 EndFunction
 
 Function OnCellEnterExitEvent(Hydra:Events:CellEnterExitParams akParams) Global

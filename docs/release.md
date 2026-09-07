@@ -26,9 +26,10 @@ v0.6.0
 make build
 ```
 
-This reads `VERSION`, stamps `__VERSION__` in `src/LudoTrace.psc`, compiles the `.pex`,
-then restores the source file. The compiled `dist/Data/Scripts/LudoTrace.pex` is updated
-in place.
+This checks the build environment (`make doctor`), version-stamps a throwaway copy of
+`src/LudoTrace.psc` (the source file is never modified), compiles, updates
+`dist/Data/Scripts/LudoTrace.pex` in place, and deploys to the local game folder. The
+`.pex` changes every build — the compiler stamps a timestamp — so commit it as-is.
 
 ### 4. Commit and open a PR
 
@@ -50,7 +51,12 @@ make release
 ```
 
 `make release` reads `VERSION`, creates the tag, and pushes it. GitHub Actions picks up
-the tag, zips `dist/`, uploads to Nexus, and updates `CHANGELOG.md`.
+the tag, runs `make package`, and uploads the zip to the GitHub Release and Nexus.
+
+> Optional pre-tag check: run `make package` yourself and install the resulting
+> `LudoTrace-FO4-vX.Y.Z.zip` in Vortex via **Install From File**. That exercises the
+> same unzip → deploy path a Nexus download uses, so you catch a packaging problem
+> before it ships.
 
 ### 6. Update Nexus mod page version (manual)
 
@@ -63,16 +69,18 @@ The Nexus Files page changelog is updated automatically. The mod page version ba
 
 | Target | What it does |
 |--------|-------------|
-| `make build` | Stamps version from `VERSION`, compiles `.pex`, restores source |
-| `make release` | Reads `VERSION`, tags from main, pushes tag to trigger CI |
-| `make run` | Launches the game via `f4se_loader.exe` |
+| `make doctor` | Checks the build environment; prints a one-line fix for anything missing |
+| `make build` | `doctor`, then version-stamp (a temp copy), compile, update `dist/`, deploy to the game |
+| `make package` | Builds `LudoTrace-FO4-<VERSION>.zip` — the exact archive CI ships. Local smoke test; CI runs this same target |
+| `make release` | Reads `VERSION`, tags from `main`, pushes the tag to trigger CI |
+| `make run` | Launches `f4se_loader.exe` from the game folder |
 
 ---
 
 ## Notes
 
 - The `VERSION` file is the single source of truth for the version string
-- `src/LudoTrace.psc` always contains `__VERSION__` in source control — the placeholder
-  is only substituted during `make build` and immediately restored
+- `src/LudoTrace.psc` always contains `__VERSION__` in source control — `make build`
+  substitutes it only in a temp copy, never touching the tracked file
 - The compiled `.pex` in `dist/` is committed — it is the release artifact
-- Never tag before building — the tag push triggers CI which zips whatever is in `dist/`
+- Never tag before building — the tag push triggers CI which packages whatever is in `dist/`

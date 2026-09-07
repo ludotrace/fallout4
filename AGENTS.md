@@ -38,9 +38,11 @@ fallout4/    ← source of truth
 
 ## Paths
 All machine-specific paths live in `tools/paths.local.bat` (gitignored). Variables:
-- `%GAME%` — Fallout 4 game folder
-- `%CK%` — Creation Kit / compiler folder
-- `%MY_GAMES%` — `Documents\My Games\Fallout4` (user-specific)
+- `%GAME%` — Fallout 4 game folder — **read by the build**
+- `%CK%` — Creation Kit / compiler folder — **read by the build**
+- `%MY_GAMES%` — `Documents\My Games\Fallout4` (user-specific) — not read by the build; only for locating logs/saves below
+
+`make build` also takes `GAME` / `CK` from the environment, overriding the file.
 
 Derived paths:
 - Compiler: `%CK%\Papyrus Compiler\PapyrusCompiler.exe`
@@ -60,14 +62,30 @@ bEnableTrace=1
 bLoadDebugInformation=1
 ```
 
+## Build requirements
+The Papyrus compiler is a closed Windows-only Bethesda tool, so a build needs:
+- **WSL with Windows interop** (or `tools/compile.bat` on native Windows)
+- **Fallout 4 installed** — provides the base-game script sources the compile links against
+- **Creation Kit installed** — provides `PapyrusCompiler.exe`
+- **Hydra installed with its scripts** — `%GAME%\Data\Scripts\Source\User\Hydra\` (license forbids vendoring)
+- **Base-game scripts extracted** — `Base.zip` → `%GAME%\Data\Scripts\Source\` (Creation Kit does this)
+- **`tools/paths.local.bat`** — `GAME` and `CK` (copy `tools/paths.example.bat`)
+
+`make doctor` checks every item and prints a one-line fix for anything missing.
+`tools/Institute_Papyrus_Flags.flg` is vendored, so the CK `Data\` tree isn't needed.
+
 ## Build process
-From WSL: `make build` (compile + deploy) or `make run` (launch game) or `make build run`.
-From Windows: double-click `tools/compile.bat`. It:
-1. Copies `src/LudoTrace.psc` into the game's `Source\User\` (staging — see Compiler notes)
-2. Compiles with import path: `stubs\` → `game Source\User\` → `game Source\`
-3. Outputs `LudoTrace.pex` to `dist/Data/Scripts/`
-4. Deploys `dist/Data/` into the game's `Data/` folder
-5. Removes the staged source file
+From WSL: `make build` (compile + deploy), `make run` (launch game), `make build run`,
+`make package` (release zip), `make doctor` (check the environment).
+
+`make build`:
+1. Runs `make doctor`.
+2. Version-stamps `src/LudoTrace.psc` into a throwaway temp dir (outside the repo — see Compiler notes).
+3. Compiles with import path: `stubs\` → `game Source\User\` → `game Source\`.
+4. Copies `LudoTrace.pex` to `dist/Data/Scripts/` and deploys `dist/Data/` into `%GAME%\Data\`.
+
+It never writes into the game install except that final deploy. `tools/compile.bat`
+(native Windows) is equivalent but stages into `game Source\User\` and removes it after.
 
 Console test: `cgf "LudoTrace.WriteSessionStart"` (close console first to see HUD notification)
 Quick quit: `qqq`
@@ -75,9 +93,9 @@ Quick quit: `qqq`
 ## Compiler notes
 - Papyrus Compiler v2.8.0.4 — does NOT support struct arrays (`string[]`, `Var[]`, `int[]` as struct fields)
 - `stubs/Hydra/Events.psc` is our minimal compilation stub — all `*Args` structs that contained array fields replaced with `int iEmptyStruct = 0`. The Params structs (callback parameter types) are kept verbatim. Hydra's real `.pex` handles runtime; stub is compile-time only.
-- **Compiler quirk — import path staging**: The compiler derives script names from the common ancestor of all import paths. Two sibling directories under the same parent both being import paths causes name mangling (e.g. `src:LudoTrace` instead of `LudoTrace`). Solution: only `stubs\` is the repo-local import root; `LudoTrace.psc` is staged into the game's `Source\User\` (which is already an import path) for compilation, then removed.
-- Flags file: `%CK%\Data\Scripts\Source\Base\Institute_Papyrus_Flags.flg`
-- Base game scripts (2403 files) extracted from CK `Base.zip` to game's `Data\Scripts\Source\` — required for compiler to resolve `Debug`, `Game`, `Actor`, etc.
+- **Compiler quirk — script name from staging location**: The compiler names the script from the source file's path relative to whichever import root shares an ancestor with it. Staging next to `stubs\` compiles it as `build:LudoTrace`; staging *inside* an import root, or in a dir that shares no ancestor with any import root, gives plain `LudoTrace`. So the Makefile stages into a `mktemp -d` dir (on `\\wsl.localhost\` or `/tmp`, no shared ancestor with repo `stubs\` or the game's `D:\` sources); `compile.bat` stages into `game Source\User\` (an import root) and deletes it after. Only `stubs\` is ever a repo-local import root.
+- Flags file: `tools/Institute_Papyrus_Flags.flg`, vendored from the base game (1.5 KB). Was `%CK%\Data\Scripts\Source\Base\Institute_Papyrus_Flags.flg`.
+- Base game scripts (~2400 files) extracted from `Base.zip` to the game's `Data\Scripts\Source\` — required for the compiler to resolve `Debug`, `Game`, `Actor`, etc. (`make doctor` checks for `Actor.psc`).
 
 ## Architecture
 

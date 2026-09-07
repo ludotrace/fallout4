@@ -23,7 +23,7 @@ if not exist "%~dp0paths.local.bat" (
 call "%~dp0paths.local.bat"
 
 set COMPILER=%CK%\Papyrus Compiler\PapyrusCompiler.exe
-set FLAGS=%CK%\Data\Scripts\Source\Base\Institute_Papyrus_Flags.flg
+set FLAGS=%~dp0Institute_Papyrus_Flags.flg
 set STUBS=%REPO%\stubs
 set GAME_USER=%GAME%\Data\Scripts\Source\User
 set GAME_SRC=%GAME%\Data\Scripts\Source
@@ -32,7 +32,8 @@ set OUT=%REPO%\dist\Data\Scripts
 :: The Papyrus compiler derives the script name from the compiled file's path
 :: relative to its import roots. The only reliable root for our script is the
 :: game's Source\User directory (already an import path). We stage the source
-:: there before compiling and remove it after.
+:: there before compiling and remove it after. (The Makefile, which has a
+:: writable temp dir on a separate filesystem root, stages there instead.)
 ::
 :: stubs\ still takes priority over Source\User for Hydra\Events.psc, which
 :: is what lets our minimal stub shadow Hydra's original.
@@ -73,6 +74,6 @@ echo      %GAME%\Data\Scripts\LudoTrace.pex
 echo      %GAME%\Data\Hydra\ScriptFunctions\LudoTrace.json
 echo.
 echo To test: launch via f4se_loader.exe, load a save.
-echo Console: cgf "LudoTrace.WriteSnapshot"
+echo Console: cgf "LudoTrace.WriteSessionStart"
 echo.
 pause

@@ -1,6 +1,10 @@
 # Machine-specific paths — copy paths.example.bat and fill in yours
 tools/paths.local.bat
 
+# Local release-archive smoke test (see `make package`)
+release_staging/
+LudoTrace-FO4-*.zip
+
 # OS
 .DS_Store
 Thumbs.db

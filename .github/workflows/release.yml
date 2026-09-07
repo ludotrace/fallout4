@@ -25,13 +25,7 @@ jobs:
           fetch-depth: 0
 
       - name: Build release zip
-        run: |
-          mkdir -p release_staging
-          cp -r dist/Data release_staging/Data
-          cp docs/coaching_prompt.md release_staging/coaching_prompt.md
-          cd release_staging
-          zip -r "../LudoTrace-FO4-${{ env.VERSION }}.zip" .
-          cd ..
+        run: make package PACKAGE_VERSION="${{ env.VERSION }}"
 
       - name: Create GitHub Release
         id: gh_release
